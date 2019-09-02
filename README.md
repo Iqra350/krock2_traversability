@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 # Masther Thesis
 Francesco Saverio Zuppichini
@@ -76,3 +77,6 @@ Each package as its own documentation and examples.
 Final results with a our MicroResNet
 ![image](https://raw.githubusercontent.com/FrancescoSaverioZuppichini/Master-Thesis/master/resources/images/results.png)
  # Krock-2-trasversability_IDSIA
+=======
+# krock2_traversability
+>>>>>>> afcc9c97959834131b01157c2df04d1525801b6e
