@@ -42,7 +42,11 @@ Open a terminal: go to the `core/`. Run `docker-compose -f docker-compose-pipeli
 
 ### Change paths
 
-Change the shared path in the `docker-compose-pipeline.yml` file to a path of your choice (relative to your host's filesystem). This shared folder is used by the development container to place generated data.
+ 1.  Inside the file ../Master-Thesis/core/simulation/simulation.py add the path of your own shared folder.
+
+ 2.  In ../Master-Thesis/core/simulation/env/webots/KrockWebotsEnv.py replaced the path with your own directory.
+
+ 3.  Inside the file Master-Thesis/core/docker-compose-pipeline.yml add the path of your own shared folder.
 
 ### Instructions
 
@@ -71,12 +75,6 @@ Inside this container's bash, run `jupyter notebook`:
 
 
 > Note: `webots+krock` section also needs tuning regarding path variables.
-
-## Chnages needed 
-
- 1.  Inside the file ../Master-Thesis/core/simulation/simulation.py add the path of your own shared folder
- 2.  In ../Master-Thesis/core/simulation/env/webots/KrockWebotsEnv.py replaced the path with your own directory.
- 3.  Inside the file Master-Thesis/core/docker-compose-pipeline.yml add the path of your own shared folder
 
 
 ### Stopping
