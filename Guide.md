@@ -40,19 +40,19 @@ Open a terminal: go to the `core/`. Run `docker-compose -f docker-compose-pipeli
 
 > This is a one time instruction. If a change in the image is done later on, the image should be rebuilt.
 
-### Change paths
-
- 1.  Inside the file ../Master-Thesis/core/simulation/simulation.py add the path of your own shared folder.
-
- 2.  In ../Master-Thesis/core/simulation/env/webots/KrockWebotsEnv.py replaced the path with your own directory.
-
- 3.  Inside the file Master-Thesis/core/docker-compose-pipeline.yml add the path of your own shared folder.
-
 ### Instructions
 
 ## Create shared_folder outside the core folder
 
-Copy the content of folder `core/simulation/env/webots/krock/krock2_ros/worlds/controllers` to the shared folder which in turn should be outside the scope of the repository folder.
+Copy the content of folder `core/simulation/env/webots/krock/krock2_ros/controllers` to the shared folder which in turn should be outside the scope of the repository folder.
+
+### Change paths
+
+ 1.  Inside the file ../Master-Thesis/core/simulation/simulation.py add the path of your own shared folder.
+
+ 2.  In ../Master-Thesis/core/simulation/env/webots/krock/KrockWebotsEnv.py replaced the path with your own directory.
+
+ 3.  Inside the file Master-Thesis/core/docker-compose-pipeline.yml add the path of your own shared folder.
 
 ## Run the simulation
 Open a three (t)erminals in `core/`.
@@ -73,6 +73,7 @@ Open webots and open the file `krock2_camera.wbt`. A message should appear indic
 
 Inside this container's bash, run `jupyter notebook`: 
 
+ `jupyter notebook --no-browser --allow-root --ip 0.0.0.0 --port 9001`
 
 > Note: `webots+krock` section also needs tuning regarding path variables.
 
