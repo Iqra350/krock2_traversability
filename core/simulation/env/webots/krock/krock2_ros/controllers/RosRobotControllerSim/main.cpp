@@ -1,4 +1,4 @@
-//#include <webots/Supervisor.hpp>
+#include <webots/Supervisor.hpp>
 #include <iostream>
 #include <ctime>
 #include <fstream>
@@ -9,28 +9,17 @@
 #include <sstream>
 #include <string.h>
 #include <stdlib.h>
-#include "eigen3/Eigen/Dense"
-#include "eigen3/Eigen/Geometry"
 #include <math.h>
+#include "GaitControl.hpp"
 #include "robotSim.hpp"
-#include <webots/Robot.hpp>
-#include <webots/Gyro.hpp>
-#include <webots/Camera.hpp>
-#include "joystick.h"
-#include "MLP.hpp"
-#include <webots/Robot.hpp>
-#include <webots/Gyro.hpp>
-#include <webots/Camera.hpp>
-//#include <iostream>
-#include <cmath>
-#include <stdlib.h>
-#include "controller.hpp"
+
+
 #include <webots_ros/get_float.h>
 #include <webots_ros/get_int.h>
 #include <webots_ros/set_bool.h>
 #include <webots_ros/set_float.h>
 #include <webots_ros/set_int.h>
-//#include "controller.cpp"
+
 #include <webots_ros/Int8Stamped.h>
 #include <webots_ros/Int32Stamped.h>
 #include "webots_ros/Float64ArrayStamped.h"
@@ -48,17 +37,10 @@
 //#include <sensor_msgs/image_encodings.h>
 
 
-#define TIME_STEP  4    //ms
+#define TIME_STEP   4    //ms
 #define FREQUENCY   0.3   //Hz
-extern int NUM_MOTORS = 18;
-#define NUMBEROFMOTORS 18
+#define NUM_MOTORS   18
 
-int USE_MOTORS[30];
-VectorXd torques(30), position(30), force(12);
-MatrixXd JFL(3,4), JFR(3,4), JHL(3,4), JHR(3,4), tmp(3,3);
-double d_posture[30], d_torques[30], compassData[3], IMUdata[3], gpsDataF[3], gpsDataH[3], ts_data[12+12], markers[4];
-double fgird_rotMat[9];
-double FL_feet_gpos[3], FR_feet_gpos[3], HL_feet_gpos[3], HR_feet_gpos[3], globalCoM[3];
 extern "C" {
   int wb_robot_init();
   int wb_robot_cleanup();
@@ -85,8 +67,9 @@ class RosKrock : public Ros {
 
   private :
     // very useful static cast to later on use methods from class RobotSim
-    RobotSim * robotSim() ;
+    RobotSim * robotSim() { return static_cast<RobotSim *>(mRobot); }
     //RosSupervisor           *mRosSupervisor;
+
     // ROS subscribers/publishers
     ros::Publisher kPosePublisher;
     //ros::Publisher kPosePublisherGPS;
@@ -112,19 +95,16 @@ class RosKrock : public Ros {
     void joyControlCallback(const sensor_msgs::Joy::ConstPtr& msg);
     void messageManualControlCallback(const webots_ros::Float64ArrayStamped::ConstPtr& msg);
 
-   // bool selectGait(int index);
+    bool selectGait(int index);
 
-    Controller *controller; // this class is called controller but does not really do that, it's mostly a logger and a sort of variable updater
+    GaitControl *controller; // this class is called controller but does not really do that, it's mostly a logger and a sort of variable updater
 
     float t, dt;
     int controller_mode; // 0 auto, 1 keyboard
     float freq, freq_left, freq_right;
-    // double  angref[NUM_MOTORS],
-    //         feedbackAngles[NUM_MOTORS],
-    //         feedbackTorques[NUM_MOTORS],
-    double  angref[NUMBEROFMOTORS],
-            feedbackAngles[NUMBEROFMOTORS],
-            feedbackTorques[NUMBEROFMOTORS],            
+    double  angref[NUM_MOTORS],
+            feedbackAngles[NUM_MOTORS],
+            feedbackTorques[NUM_MOTORS],
             rollPitchYaw[3],
             gpsDataFront[3],
             gpsDataHind[3],
@@ -174,34 +154,34 @@ RosKrock::~RosKrock(){
     delete mRobot;
 }
 
-// void RosKrock::setGaitCallback(const webots_ros::Int8Stamped::ConstPtr& msg){
-//     //ROS_INFO ("New gait option received: %d", msg->data);
-//     int new_gait_idx = msg->data;
+void RosKrock::setGaitCallback(const webots_ros::Int8Stamped::ConstPtr& msg){
+    //ROS_INFO ("New gait option received: %d", msg->data);
+    int new_gait_idx = msg->data;
 
-//     selectGait(new_gait_idx);
-// }
+    selectGait(new_gait_idx);
+}
 
-// bool RosKrock::selectGait(int new_gait_idx){
-//     if (new_gait_idx >=0 && new_gait_idx <=3){
-//         if (new_gait_idx != current_gait_idx){
-//             ROS_INFO ("Changing gait to: %s", gait_files[new_gait_idx]);
-//             GaitControl * tmp_ptr;
-//             tmp_ptr = controller;
-//             controller = new GaitControl(FREQUENCY, gait_files[new_gait_idx]);
-//             delete tmp_ptr;
-//             current_gait_idx = new_gait_idx;
-//             controller->setTimeStep(dt);
-//         }
-//         else{
-//             ROS_INFO ("Selected gait is the same as current!");
-//         }
-//         return true;
-//     }
-//     else{
-//         ROS_INFO ("Wrong gait index. Current gait kept: %s", gait_files[current_gait_idx]);
-//     }
-//     return false;
-// }
+bool RosKrock::selectGait(int new_gait_idx){
+    if (new_gait_idx >=0 && new_gait_idx <=3){
+        if (new_gait_idx != current_gait_idx){
+            ROS_INFO ("Changing gait to: %s", gait_files[new_gait_idx]);
+            GaitControl * tmp_ptr;
+            tmp_ptr = controller;
+            controller = new GaitControl(FREQUENCY, gait_files[new_gait_idx]);
+            delete tmp_ptr;
+            current_gait_idx = new_gait_idx;
+            controller->setTimeStep(dt);
+        }
+        else{
+            ROS_INFO ("Selected gait is the same as current!");
+        }
+        return true;
+    }
+    else{
+        ROS_INFO ("Wrong gait index. Current gait kept: %s", gait_files[current_gait_idx]);
+    }
+    return false;
+}
 
 
 void RosKrock::setSpawnPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg){
@@ -259,12 +239,12 @@ void RosKrock::keyboardManualControlCallback(const webots_ros::Int32Stamped::Con
         controller_mode = (controller_mode%2);
         ROS_INFO("MODE TOGGLE: %d", controller_mode);
         break;
-    // case 0: // Gait selection
-    //     selectGait(0);
-    //     break;
-    // case 1:
-    //     selectGait(1);
-    //     break;
+    case 0: // Gait selection
+        selectGait(0);
+        break;
+    case 1:
+        selectGait(1);
+        break;
     default:
         ROS_INFO("unknown key: %d",key);
         break;
@@ -283,7 +263,7 @@ void RosKrock::joyControlCallback(const sensor_msgs::Joy::ConstPtr& msg){
     if (buttons[1] == 1){ // toggle gait
         int new_gait_idx = current_gait_idx+1;
         new_gait_idx = (new_gait_idx%4);
-        //selectGait(new_gait_idx);
+        selectGait(new_gait_idx);
         ROS_INFO("GAIT TOGGLE: %d", current_gait_idx);
     }
     if (controller_mode==1){
@@ -293,13 +273,13 @@ void RosKrock::joyControlCallback(const sensor_msgs::Joy::ConstPtr& msg){
 }
 
 void RosKrock::messageManualControlCallback(const webots_ros::Float64ArrayStamped::ConstPtr& msg){
-    //Do we really need the Stamp? Left for future uses.
+    /*Do we really need the Stamp? Left for future uses.*/
     std::vector<double> inputs (msg->data);
     if (inputs.size() == 4){
         //ROS_INFO("Manually setting control inputs (mode, gait, frontal freq, lateral freq ):");
         controller_mode = int(inputs[0]) %2 ;
         int new_gait_idx = int(inputs[1]) % 4;
-        //selectGait(new_gait_idx);
+        selectGait(new_gait_idx);
         float ff, fl;
         fl = (inputs[2]>1.0) ? 1.0 : inputs[2];
         fl = (inputs[2]<-1.0) ? -1.0 : inputs[2];
@@ -328,7 +308,7 @@ void RosKrock::setupRobot(){
     }
     */
     cout<<"RobotSIM CREATED"<<endl;
-    controller = new Controller(dt);
+    controller = new GaitControl(FREQUENCY, gait_files[current_gait_idx]);
     controller->setTimeStep(dt);
 
     //last_step_t = ros::Time::now();
@@ -394,22 +374,19 @@ int RosKrock::step(int duration){
             break;
         case 1: // manual
             //controller->setTimeStep(dt);
-            //controller->runStep(freq_left, freq_right);
-            //controller->getAnglesManual(angref);
-            controller->runStep();
-            controller->getAngles(angref);
+            controller->runStep(freq_left, freq_right);
+            controller->getAnglesManual(angref);
             break;
     };
 
     // send new joint angles to the robot
-    robotSim()->setAngles(angref,USE_MOTORS);
+    robotSim()->setAngles(angref);
 
     // get feedback from the robot
-    //robotSim()->GetIMU(rollPitchYaw);
+    robotSim()->GetIMU(rollPitchYaw);
     robotSim()->GetPosition(gpsDataFront, gpsDataHind);
     robotSim()->getPositionTorques(feedbackAngles, feedbackTorques);
     robotSim()->ReadTouchSensors(feetTouchSensors);
-   
 
 
     // NOTE: This is the way the native robot controllers retrieves data of pose, joints, torques
@@ -549,7 +526,7 @@ int main(int argc, char **argv)
 
     RosKrock *krock = new RosKrock();
     krock->run(argc, argv);
-    
+
     delete krock;
 
   return 0;
