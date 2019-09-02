@@ -46,10 +46,11 @@ Change the shared path in the `docker-compose-pipeline.yml` file to a path of yo
 
 ### Instructions
 
-Clone the repository and checkout the branch epfl_dev.
+## Create shared_folder outside the core folder
 
-Copy the content of folder `core/simulation/env/webots/krock/krock2_ros/worlds/controllers` to the shared folder which in turn should be outside the scope of the repository folder. This will be considered the `webots_base_dir` and is used when running webots outside the containerised tasks.
+Copy the content of folder `core/simulation/env/webots/krock/krock2_ros/worlds/controllers` to the shared folder which in turn should be outside the scope of the repository folder.
 
+## Run the simulation
 Open a three (t)erminals in `core/`.
 
 (t1)Bring up the ROS core container:
@@ -68,19 +69,15 @@ Open webots and open the file `krock2_camera.wbt`. A message should appear indic
 
 Inside this container's bash, run `jupyter notebook`: 
 
-> `jupyter notebook --no-browser --allow-root --ip 0.0.0.0 --port 9001`
-
-Open a web browser in `http://localhost:9001`. Take the requested token from `jupyter`'s log.
-
-Open the Simulation notebook from the `jupyter notebook` browser. 
-
-Test the notebook (`ctrl-enter` in each cell) to reproduce the results from the pipeline. Remember to change the values of the path variables to your chosen paths:
-
->`out_dir='/home/omar/shared_data'`
->`webots_base_dir='/home/omar/shared_data/worlds/controllers'`
-
 
 > Note: `webots+krock` section also needs tuning regarding path variables.
+
+## Chnages needed 
+
+ 1.  Inside the file ../Master-Thesis/core/simulation/simulation.py add the path of your own shared folder
+ 2.  In ../Master-Thesis/core/simulation/env/webots/KrockWebotsEnv.py replaced the path with your own directory.
+ 3.  Inside the file Master-Thesis/core/docker-compose-pipeline.yml add the path of your own shared folder
+
 
 ### Stopping
 
