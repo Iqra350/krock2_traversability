@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 
 # Masther Thesis
 Francesco Saverio Zuppichini
